@@ -41,28 +41,63 @@ SYSTEM_PROMPT = """You are a literary data assistant.
 ## Capabilities
 
 - `fetch_text_from_url`: loads document text from a URL into the conversation.
-Do not guess line counts or positions — ground them in tool results from the fetched file."""
+- `count_lines_containing`: fetches a document and counts how many lines contain a substring.
+  Always use this tool for any line-count or line-number question — never count manually."""
 
 # ──────────────────────────────────────────────
 # 2. Define tools
 # ──────────────────────────────────────────────
 
-@tool
-def fetch_text_from_url(url: str) -> str:
-    """Fetch the full text of a document from a URL."""
+def _fetch_raw(url: str) -> str:
+    """Download text from a URL (shared by both tools)."""
     req = urllib.request.Request(
         url,
         headers={"User-Agent": "Mozilla/5.0 (compatible; quickstart-research/1.0)"},
     )
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        return resp.read().decode("utf-8", errors="replace")
+
+
+@tool
+def fetch_text_from_url(url: str) -> str:
+    """Fetch the full text of a document from a URL.
+
+    Returns the first 50 000 characters to stay within model context limits.
+    """
     try:
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            raw = resp.read()
-    except urllib.error.URLError as e:
+        text = _fetch_raw(url)
+    except Exception as e:
         return f"Fetch failed: {e}"
-    text = raw.decode("utf-8", errors="replace")
     # Truncate to avoid hitting the model's context length limit;
     # 50 000 chars covers the bulk of most novels while staying well within token budgets.
     return text[:50_000]
+
+
+@tool
+def count_lines_containing(url: str, substring: str) -> str:
+    """Fetch a document and count how many lines contain the given substring.
+
+    Counting is done in Python on the full document — do NOT attempt to count
+    manually from fetched text. Always call this tool for any line-count question.
+    Returns the total count and the 1-based line number of the first match.
+    """
+    # Counting is done here in Python, not by the LLM, for accuracy.
+    # create_deep_agent's sub-agents lose the in-context text, so delegating
+    # counting to an LLM sub-agent always returns wrong results.
+    try:
+        text = _fetch_raw(url)
+    except Exception as e:
+        return f"Fetch failed: {e}"
+
+    lines = text.splitlines()
+    matching = [(i + 1, line) for i, line in enumerate(lines) if substring in line]
+    if not matching:
+        return f'No lines contain "{substring}".'
+    first_lineno = matching[0][0]
+    return (
+        f'"{substring}" appears in {len(matching)} distinct lines. '
+        f"First occurrence: line {first_lineno}."
+    )
 
 # ──────────────────────────────────────────────
 # 3. Build agents
@@ -73,11 +108,14 @@ _checkpointer_standard = InMemorySaver()
 _checkpointer_deep = InMemorySaver()
 
 
+_tools = [fetch_text_from_url, count_lines_containing]
+
+
 def build_standard_agent():
     """Plain ReAct agent: LLM + your tools only."""
     return create_agent(
         model=create_llm(temperature=0.5, max_tokens=4096),
-        tools=[fetch_text_from_url],
+        tools=_tools,
         system_prompt=SYSTEM_PROMPT,
         checkpointer=_checkpointer_standard,
     )
@@ -87,7 +125,7 @@ def build_deep_agent():
     """Deep agent: same interface, plus built-in planning, sub-agents, and file-system tools."""
     return create_deep_agent(
         model=create_llm(temperature=0.5, max_tokens=4096),
-        tools=[fetch_text_from_url],
+        tools=_tools,
         system_prompt=SYSTEM_PROMPT,
         checkpointer=_checkpointer_deep,
     )
@@ -163,7 +201,7 @@ def main():
     print("Same question, same model, same tools. Only the agent differs.")
     print("="*60)
 
-    invoke_and_print(standard_agent, "create_agent      (standard)", RESEARCH_QUESTION, standard_config)
+    # invoke_and_print(standard_agent, "create_agent      (standard)", RESEARCH_QUESTION, standard_config)
     invoke_and_print(deep_agent,     "create_deep_agent (deep)    ", RESEARCH_QUESTION, deep_config)
 
     # ── Part B: multi-turn memory (deep agent only) ──────
