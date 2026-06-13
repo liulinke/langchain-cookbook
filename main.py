@@ -24,6 +24,11 @@ EXAMPLES = [
         "desc": "Research Agent — fetch and analyze documents from the web",
         "cmd": "uv run python -m examples.s_02_research_agent",
     },
+    {
+        "name": "s_03_agent_harness",
+        "desc": "Agent Harness Patterns — streaming, structured output, context schema",
+        "cmd": "uv run python -m examples.s_03_agent_harness",
+    },
 ]
 
 

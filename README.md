@@ -45,6 +45,9 @@ uv run python main.py
 - **[02 · Research Agent](examples/s_02_research_agent/README.md)** — A document research agent using `create_deep_agent` (from the `deepagents` package) that fetches a full novel and answers questions across two conversation turns, demonstrating persistent multi-turn memory via `thread_id`.
   `uv run python -m examples.s_02_research_agent`
 
+- **[03 · Agent Harness Patterns](examples/s_03_agent_harness/README.md)** — Demonstrates the `Agent = Model + Harness` concept with three harness features: streaming tool calls in real time, structured Pydantic output via `response_format`, and per-run user data via `context_schema`.
+  `uv run python -m examples.s_03_agent_harness`
+
 ---
 
 ## Project Structure
