@@ -1,18 +1,20 @@
-# Example 02 · Research Agent
+# Example 02 · Research Agent (Deep Agent + Multi-Turn Memory)
 
 > **Source:** [LangChain Quickstart — LangChain Agents](https://docs.langchain.com/oss/python/langchain/quickstart#langchain-agents)
 
 ## What This Example Demonstrates
 
-A **document research agent** built with `langchain.agents.create_agent`. The agent is given a single tool — fetching raw text from a URL — and uses it to answer detailed factual questions about the document's content. It cannot guess; it must fetch and verify.
+A **document research agent** built with `deepagents.create_deep_agent`. It fetches a full novel from Project Gutenberg and answers factual questions about it across two conversation turns — demonstrating that the agent remembers what it fetched in turn 1 when answering the follow-up in turn 2.
 
 ## Key Concepts
 
-### `create_agent`
-LangChain's high-level agent factory. It wires together a model, a list of tools, a system prompt, and an optional checkpointer into a runnable agent without requiring you to manually define a graph.
+### `create_deep_agent`
+A high-level agent factory from the `deepagents` package. Compared to `create_agent`, deep agents come with planning, sub-agent orchestration, and file-system tools already built in — maximum capability with minimal setup.
 
 ```python
-agent = create_agent(
+from deepagents import create_deep_agent
+
+agent = create_deep_agent(
     model=...,
     tools=[fetch_text_from_url],
     system_prompt=SYSTEM_PROMPT,
@@ -20,16 +22,30 @@ agent = create_agent(
 )
 ```
 
-Under the hood this uses LangGraph, so the agent is a `StateGraph` with the same ReAct loop as Example 01 — but the graph is built for you.
+### Multi-Turn Memory with `thread_id`
+The `InMemorySaver` checkpointer persists conversation state keyed by `thread_id`. As long as both `.invoke()` calls use the same `thread_id`, the agent retains full context across calls:
 
-### Checkpointer and Multi-Turn Memory
-`InMemorySaver` persists the conversation state keyed by `thread_id`. This means:
-- The agent remembers previous messages within the same thread.
-- You can ask follow-up questions in a second `.invoke()` call with the same `thread_id` and the agent retains full context.
-- State is in-process only and is lost when the program exits.
+```python
+config = {"configurable": {"thread_id": "great-gatsby"}}
 
-### Grounding Agent Behavior via System Prompt
-The system prompt instructs the agent **not to guess** — it must use the tool to retrieve the document before making any claims about line numbers or counts. This is a key technique for reducing hallucination in research agents.
+# Turn 1: agent fetches the document and answers initial questions
+agent.invoke({"messages": [{"role": "user", "content": TURN_1}]}, config=config)
+
+# Turn 2: agent already has the full document in context — no re-fetch needed
+agent.invoke({"messages": [{"role": "user", "content": TURN_2}]}, config=config)
+```
+
+This is the key advantage of a stateful agent over a stateless chain: you can ask follow-up questions naturally, and the agent builds on previous results instead of starting from scratch.
+
+### Grounding via System Prompt
+The system prompt tells the agent not to guess line counts or positions — it must use `fetch_text_from_url` to retrieve the document first. This is a standard technique for reducing hallucination in retrieval-heavy agents.
+
+## Conversation Flow
+
+```
+Turn 1 ──► fetch document (~75 KB) ──► answer: line counts, synopsis
+Turn 2 ──► (document already in context) ──► answer: narrator background
+```
 
 ## Tool
 
@@ -43,16 +59,31 @@ The system prompt instructs the agent **not to guess** — it must use the tool 
 uv run python -m examples.s_02_research_agent
 ```
 
-The agent will:
-1. Receive a question about *The Great Gatsby* on Project Gutenberg
-2. Call `fetch_text_from_url` to download the full text (~100K tokens)
-3. Analyze the text and return verified answers
+Expected output (abbreviated):
 
-> **Note:** This example downloads ~75 KB of text and may make several LLM calls. Expect it to take 10–30 seconds depending on your model.
+```
+============================================================
+Research Agent (Deep Agent) — The Great Gatsby
+============================================================
+
+────────────────────────────────────────────────────────────
+[Turn 1] Project Gutenberg hosts a plain-text copy of ...
+────────────────────────────────────────────────────────────
+1) Lines containing "Gatsby": ...
+2) First line containing "Daisy": line ...
+3) Synopsis: ...
+
+────────────────────────────────────────────────────────────
+[Turn 2 (follow-up, no re-fetch needed)] Who is the narrator ...
+────────────────────────────────────────────────────────────
+The narrator is Nick Carraway ...
+```
+
+> **Note:** Turn 1 downloads ~75 KB and may take 10–30 seconds. Turn 2 is fast — the document is already in the agent's memory.
 
 ## Files
 
 | File | Purpose |
 |------|---------|
-| `main.py` | Tool definition, agent setup, research question, entry point |
+| `main.py` | Tool, agent setup, two-turn conversation, entry point |
 | `__main__.py` | Thin wrapper so `python -m examples.s_02_research_agent` works |

@@ -42,7 +42,7 @@ uv run python main.py
 - **[01 · LLM with Tools (ReAct Agent)](examples/s_01_llm_with_tools/README.md)** — Build a ReAct Agent with LangGraph that calls arithmetic tools to solve math problems step by step.
   `uv run python -m examples.s_01_llm_with_tools`
 
-- **[02 · Research Agent](examples/s_02_research_agent/README.md)** — A document research agent using `create_agent` that fetches raw text from a URL and answers detailed factual questions about the content.
+- **[02 · Research Agent](examples/s_02_research_agent/README.md)** — A document research agent using `create_deep_agent` (from the `deepagents` package) that fetches a full novel and answers questions across two conversation turns, demonstrating persistent multi-turn memory via `thread_id`.
   `uv run python -m examples.s_02_research_agent`
 
 ---
