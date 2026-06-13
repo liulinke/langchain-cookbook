@@ -19,6 +19,11 @@ EXAMPLES = [
         "desc": "ReAct Agent with tool calling (add / multiply / divide)",
         "cmd": "uv run python -m examples.s_01_llm_with_tools",
     },
+    {
+        "name": "s_02_research_agent",
+        "desc": "Research Agent — fetch and analyze documents from the web",
+        "cmd": "uv run python -m examples.s_02_research_agent",
+    },
 ]
 
 

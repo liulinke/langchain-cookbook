@@ -1,6 +1,6 @@
 # LangChain Cookbook
 
-A collection of runnable [LangChain](https://python.langchain.com/) / [LangGraph](https://langchain-ai.github.io/langgraph/) examples. All examples are sourced from the [LangChain official documentation](https://python.langchain.com/docs/).
+A collection of runnable examples covering [LangChain](https://python.langchain.com/), [LangGraph](https://langchain-ai.github.io/langgraph/), and Deep Agents patterns. All examples are sourced from the [LangChain official documentation](https://python.langchain.com/docs/).
 
 > 中文版说明请见 [README_CN.md](README_CN.md)
 
@@ -39,17 +39,11 @@ uv run python main.py
 
 ## Examples
 
-### 01 · LLM with Tools (ReAct Agent)
+- **[01 · LLM with Tools (ReAct Agent)](examples/s_01_llm_with_tools/README.md)** — Build a ReAct Agent with LangGraph that calls arithmetic tools to solve math problems step by step.
+  `uv run python -m examples.s_01_llm_with_tools`
 
-A ReAct Agent built with the LangGraph Graph API. It uses arithmetic tools (add, multiply, divide) to solve math problems step by step. Call traces are uploaded to a local Langfuse service.
-
-> Source: [LangGraph Tutorial — Build a ReAct Agent](https://langchain-ai.github.io/langgraph/tutorials/introduction/)
-
-```bash
-uv run python -m examples.s_01_llm_with_tools
-```
-
-See [examples/s_01_llm_with_tools/README.md](examples/s_01_llm_with_tools/README.md) for a detailed explanation.
+- **[02 · Research Agent](examples/s_02_research_agent/README.md)** — A document research agent using `create_agent` that fetches raw text from a URL and answers detailed factual questions about the content.
+  `uv run python -m examples.s_02_research_agent`
 
 ---
 
