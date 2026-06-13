@@ -19,23 +19,23 @@ Both functions take the same arguments (`model`, `tools`, `system_prompt`, `chec
 | **Built-in file-system tools** | No | Yes (`ls`, `read_file`, `write_file`, `grep`, …) |
 | **Best for** | Simple, focused tasks | Complex, multi-step research |
 
-### Different counting strategies
+### Different counting strategies — the key contrast
 
-Because `create_deep_agent` includes `FilesystemMiddleware` automatically, each agent can take a different — and more idiomatic — approach to line counting:
+Both agents receive only `fetch_text_from_url`. That's where they diverge:
 
-**`create_agent` (standard)** — no built-in file tools, so we provide a custom `count_lines_containing(url, substring)` tool that fetches and counts in Python:
-
-```
-fetch_text_from_url  →  count_lines_containing  →  answer
-```
-
-**`create_deep_agent` (deep)** — has `write_file` and `grep` built in, so we instruct it to use them. The agent saves the fetched document to a virtual file and runs `grep` against it — accurate and without needing a custom counting tool:
+**`create_agent` (standard)** — has no file tools, no grep. After fetching the document it must try to count lines from in-context text. LLMs are poor at counting, so it will hallucinate or refuse:
 
 ```
-fetch_text_from_url  →  write_file("/gatsby.txt")  →  grep("Gatsby", "/gatsby.txt")  →  answer
+fetch_text_from_url  →  (LLM tries to count from context)  →  wrong / unreliable answer
 ```
 
-This also highlights a key design principle: with `create_deep_agent` you wire in the *capability* (filesystem access), not a hand-rolled implementation of every operation.
+**`create_deep_agent` (deep)** — `FilesystemMiddleware` is included automatically, giving it `write_file` and `grep`. The system prompt instructs it to save the document and grep it — accurate every time:
+
+```
+fetch_text_from_url  →  write_file("/gatsby.txt")  →  grep("Gatsby", "/gatsby.txt")  →  correct answer
+```
+
+This is the core lesson: `create_deep_agent` doesn't just run a smarter LLM — it gives the agent *tools* that bypass the things LLMs are bad at (counting, exact search).
 
 ## Demo Structure
 
