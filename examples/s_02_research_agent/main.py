@@ -141,15 +141,18 @@ def main():
         session_id="s_02_research_agent",
         user_id="demo-user",
         trace_name="Standard Agent — Great Gatsby",
-        extra_metadata={"configurable": {"thread_id": "gatsby-standard"}},
     )
+    # thread_id must be a top-level "configurable" key for LangGraph's checkpointer —
+    # it cannot live inside "metadata"
+    standard_config["configurable"] = {"thread_id": "gatsby-standard"}
+
     deep_config = build_langfuse_config(
         langfuse_handler,
         session_id="s_02_research_agent",
         user_id="demo-user",
         trace_name="Deep Agent — Great Gatsby",
-        extra_metadata={"configurable": {"thread_id": "gatsby-deep"}},
     )
+    deep_config["configurable"] = {"thread_id": "gatsby-deep"}
 
     # ── Part A: side-by-side comparison ──────────────────
     print(f"\n{'='*60}")
