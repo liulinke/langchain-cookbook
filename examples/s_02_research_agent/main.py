@@ -1,13 +1,19 @@
 """
-Example 02: Research Agent (create_deep_agent + multi-turn memory)
-===================================================================
-A document research agent built with deepagents.create_deep_agent.
-Deep agents come with planning, sub-agent, and file-system capabilities
-built in — minimal setup, maximum capability.
+Example 02: Research Agent — create_agent vs create_deep_agent
+==============================================================
+Runs the same research task with two different agent factories side by side
+so you can compare their outputs and reasoning depth:
 
-This example also demonstrates multi-turn conversation: the agent fetches
-and analyzes a document in turn 1, then answers a follow-up in turn 2
-using the same thread_id — no need to re-fetch the document.
+  create_agent      — standard ReAct loop: LLM + your tools, nothing more
+  create_deep_agent — same interface, but adds built-in planning, sub-agent
+                      orchestration, and file-system tools automatically
+
+Both agents use the same custom tool (fetch_text_from_url) and the same
+model, so any difference in output comes purely from the agent architecture.
+
+After the comparison, the demo continues with create_deep_agent to show
+multi-turn memory: turn 2 is a follow-up question that reuses the document
+already loaded in turn 1 — no re-fetch needed.
 
 Source: https://docs.langchain.com/oss/python/langchain/quickstart#langchain-agents
 
@@ -17,6 +23,7 @@ Run:
 import urllib.error
 import urllib.request
 
+from langchain.agents import create_agent
 from deepagents import create_deep_agent
 from langchain.tools import tool
 from langgraph.checkpoint.memory import InMemorySaver
@@ -55,29 +62,38 @@ def fetch_text_from_url(url: str) -> str:
     return raw.decode("utf-8", errors="replace")
 
 # ──────────────────────────────────────────────
-# 3. Build agent
+# 3. Build agents
 # ──────────────────────────────────────────────
 
-# A single InMemorySaver shared across all invocations — this is what
-# makes multi-turn memory work. Each thread_id gets its own conversation history.
-_checkpointer = InMemorySaver()
+# Separate checkpointers so the two agents' memories never cross-contaminate
+_checkpointer_standard = InMemorySaver()
+_checkpointer_deep = InMemorySaver()
 
 
-def build_agent():
-    """Create a deep research agent with URL-fetching capability and persistent memory."""
+def build_standard_agent():
+    """Plain ReAct agent: LLM + your tools only."""
+    return create_agent(
+        model=create_llm(temperature=0.5, max_tokens=4096),
+        tools=[fetch_text_from_url],
+        system_prompt=SYSTEM_PROMPT,
+        checkpointer=_checkpointer_standard,
+    )
+
+
+def build_deep_agent():
+    """Deep agent: same interface, plus built-in planning, sub-agents, and file-system tools."""
     return create_deep_agent(
         model=create_llm(temperature=0.5, max_tokens=4096),
         tools=[fetch_text_from_url],
         system_prompt=SYSTEM_PROMPT,
-        checkpointer=_checkpointer,
+        checkpointer=_checkpointer_deep,
     )
 
 # ──────────────────────────────────────────────
-# 4. Conversation turns
+# 4. Research questions
 # ──────────────────────────────────────────────
 
-# Turn 1: ask the agent to fetch the document and answer initial questions
-TURN_1 = """\
+RESEARCH_QUESTION = """\
 Project Gutenberg hosts a plain-text copy of F. Scott Fitzgerald's The Great Gatsby.
 URL: https://www.gutenberg.org/files/64317/64317-0.txt
 
@@ -86,15 +102,18 @@ Please fetch the document and answer:
 2) What is the 1-based line number of the first line containing "Daisy"?
 3) A two-sentence neutral synopsis of the novel."""
 
-# Turn 2: follow-up — the agent already has the full document in context,
-# so it answers instantly without re-fetching
-TURN_2 = "Who is the narrator of the novel, and how does he know Gatsby?"
+# The follow-up reuses what create_deep_agent already loaded in turn 1 —
+# no re-fetch, instant answer from memory.
+FOLLOWUP_QUESTION = "Who is the narrator of the novel, and how does he know Gatsby?"
 
+# ──────────────────────────────────────────────
+# 5. Helpers
+# ──────────────────────────────────────────────
 
-def invoke_and_print(agent, turn_label: str, message: str, config: dict) -> None:
-    """Send one message to the agent and print the response."""
+def invoke_and_print(agent, label: str, message: str, config: dict) -> None:
     print(f"\n{'─'*60}")
-    print(f"[{turn_label}] {message}")
+    print(f"[{label}]")
+    print(f"Q: {message[:120]}{'...' if len(message) > 120 else ''}")
     print("─"*60)
 
     result = agent.invoke(
@@ -108,30 +127,47 @@ def invoke_and_print(agent, turn_label: str, message: str, config: dict) -> None
     print(f"\n{output}")
 
 # ──────────────────────────────────────────────
-# 5. Entry point
+# 6. Entry point
 # ──────────────────────────────────────────────
 
 def main():
-    agent = build_agent()
-
-    print(f"\n{'='*60}")
-    print("Research Agent (Deep Agent) — The Great Gatsby")
-    print("="*60)
+    standard_agent = build_standard_agent()
+    deep_agent = build_deep_agent()
 
     langfuse_handler = create_langfuse_handler()
 
-    # Both turns share the same thread_id so the agent accumulates memory
-    # across calls — turn 2 has full context from turn 1 without re-fetching.
-    config = build_langfuse_config(
+    standard_config = build_langfuse_config(
         langfuse_handler,
         session_id="s_02_research_agent",
         user_id="demo-user",
-        trace_name="Great Gatsby Research",
-        extra_metadata={"configurable": {"thread_id": "great-gatsby"}},
+        trace_name="Standard Agent — Great Gatsby",
+        extra_metadata={"configurable": {"thread_id": "gatsby-standard"}},
+    )
+    deep_config = build_langfuse_config(
+        langfuse_handler,
+        session_id="s_02_research_agent",
+        user_id="demo-user",
+        trace_name="Deep Agent — Great Gatsby",
+        extra_metadata={"configurable": {"thread_id": "gatsby-deep"}},
     )
 
-    invoke_and_print(agent, "Turn 1", TURN_1, config)
-    invoke_and_print(agent, "Turn 2 (follow-up, no re-fetch needed)", TURN_2, config)
+    # ── Part A: side-by-side comparison ──────────────────
+    print(f"\n{'='*60}")
+    print("PART A — Side-by-side comparison")
+    print("Same question, same model, same tools. Only the agent differs.")
+    print("="*60)
+
+    invoke_and_print(standard_agent, "create_agent      (standard)", RESEARCH_QUESTION, standard_config)
+    invoke_and_print(deep_agent,     "create_deep_agent (deep)    ", RESEARCH_QUESTION, deep_config)
+
+    # ── Part B: multi-turn memory (deep agent only) ──────
+    print(f"\n{'='*60}")
+    print("PART B — Multi-turn memory (create_deep_agent)")
+    print("Follow-up question reuses the document already in context.")
+    print("The agent does NOT re-fetch the URL.")
+    print("="*60)
+
+    invoke_and_print(deep_agent, "Turn 2 follow-up (no re-fetch)", FOLLOWUP_QUESTION, deep_config)
 
     print(f"\n{'='*60}")
     print("Traces uploaded to Langfuse: http://localhost:3000")
