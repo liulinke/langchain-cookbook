@@ -16,10 +16,26 @@ Both functions take the same arguments (`model`, `tools`, `system_prompt`, `chec
 | **ReAct loop** | Yes | Yes |
 | **Built-in planning** | No | Yes |
 | **Sub-agent orchestration** | No | Yes |
-| **Built-in file-system tools** | No | Yes |
+| **Built-in file-system tools** | No | Yes (`ls`, `read_file`, `write_file`, `grep`, …) |
 | **Best for** | Simple, focused tasks | Complex, multi-step research |
 
-For this example both agents are given the same tool (`fetch_text_from_url`) and the same model, so any difference in the output comes purely from the agent architecture.
+### Different counting strategies
+
+Because `create_deep_agent` includes `FilesystemMiddleware` automatically, each agent can take a different — and more idiomatic — approach to line counting:
+
+**`create_agent` (standard)** — no built-in file tools, so we provide a custom `count_lines_containing(url, substring)` tool that fetches and counts in Python:
+
+```
+fetch_text_from_url  →  count_lines_containing  →  answer
+```
+
+**`create_deep_agent` (deep)** — has `write_file` and `grep` built in, so we instruct it to use them. The agent saves the fetched document to a virtual file and runs `grep` against it — accurate and without needing a custom counting tool:
+
+```
+fetch_text_from_url  →  write_file("/gatsby.txt")  →  grep("Gatsby", "/gatsby.txt")  →  answer
+```
+
+This also highlights a key design principle: with `create_deep_agent` you wire in the *capability* (filesystem access), not a hand-rolled implementation of every operation.
 
 ## Demo Structure
 

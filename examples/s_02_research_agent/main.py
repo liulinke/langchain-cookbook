@@ -4,12 +4,13 @@ Example 02: Research Agent — create_agent vs create_deep_agent
 Runs the same research task with two different agent factories side by side
 so you can compare their outputs and reasoning depth:
 
-  create_agent      — standard ReAct loop: LLM + your tools, nothing more
-  create_deep_agent — same interface, but adds built-in planning, sub-agent
-                      orchestration, and file-system tools automatically
+  create_agent      — standard ReAct loop: LLM + your tools, nothing more.
+                      Uses a custom count_lines_containing tool for accuracy.
 
-Both agents use the same custom tool (fetch_text_from_url) and the same
-model, so any difference in output comes purely from the agent architecture.
+  create_deep_agent — same interface, but adds built-in planning, sub-agent
+                      orchestration, and file-system tools (ls, read_file,
+                      write_file, grep, …) automatically.
+                      Counting strategy: fetch → write_file → grep (built-in).
 
 After the comparison, the demo continues with create_deep_agent to show
 multi-turn memory: turn 2 is a follow-up question that reuses the document
@@ -33,23 +34,43 @@ from common.llm import create_llm
 from common.tracing import create_langfuse_handler, build_langfuse_config, get_langfuse_host
 
 # ──────────────────────────────────────────────
-# 1. System prompt
+# 1. System prompts
+# Each agent gets its own prompt explaining the counting strategy it should use.
 # ──────────────────────────────────────────────
 
-SYSTEM_PROMPT = """You are a literary data assistant.
+# Standard agent has no built-in file tools, so it uses the custom
+# count_lines_containing tool for accurate line counting.
+SYSTEM_PROMPT_STANDARD = """You are a literary data assistant.
 
-## Capabilities
+## Tools
 
 - `fetch_text_from_url`: loads document text from a URL into the conversation.
-- `count_lines_containing`: fetches a document and counts how many lines contain a substring.
-  Always use this tool for any line-count or line-number question — never count manually."""
+- `count_lines_containing`: fetches a document and counts how many lines contain a
+  substring. Always use this tool for any line-count or line-number question."""
+
+# Deep agent has built-in write_file and grep (from FilesystemMiddleware).
+# Counting strategy: fetch the document → save it with write_file → grep for the pattern.
+# This is more accurate than in-context counting by LLM sub-agents.
+SYSTEM_PROMPT_DEEP = """You are a literary data assistant.
+
+## Tools
+
+- `fetch_text_from_url`: fetches the full text of a document from a URL.
+- Built-in file tools: `write_file`, `grep`, `read_file`, etc.
+
+## How to answer line-count questions
+
+1. Call `fetch_text_from_url` to download the document.
+2. Call `write_file` to save the content to a local file, e.g. `/gatsby.txt`.
+3. Call `grep` with the pattern and the file path to count matching lines.
+   Use the grep result for your answer — do NOT count manually."""
 
 # ──────────────────────────────────────────────
 # 2. Define tools
 # ──────────────────────────────────────────────
 
 def _fetch_raw(url: str) -> str:
-    """Download text from a URL (shared by both tools)."""
+    """Download text from a URL (shared helper)."""
     req = urllib.request.Request(
         url,
         headers={"User-Agent": "Mozilla/5.0 (compatible; quickstart-research/1.0)"},
@@ -69,7 +90,7 @@ def fetch_text_from_url(url: str) -> str:
     except Exception as e:
         return f"Fetch failed: {e}"
     # Truncate to avoid hitting the model's context length limit;
-    # 50 000 chars covers the bulk of most novels while staying well within token budgets.
+    # 50 000 chars covers the bulk of most novels while staying within token budgets.
     return text[:50_000]
 
 
@@ -77,26 +98,22 @@ def fetch_text_from_url(url: str) -> str:
 def count_lines_containing(url: str, substring: str) -> str:
     """Fetch a document and count how many lines contain the given substring.
 
-    Counting is done in Python on the full document — do NOT attempt to count
-    manually from fetched text. Always call this tool for any line-count question.
+    Counting is done in Python on the full document — always call this tool
+    for line-count questions instead of counting manually.
     Returns the total count and the 1-based line number of the first match.
     """
-    # Counting is done here in Python, not by the LLM, for accuracy.
-    # create_deep_agent's sub-agents lose the in-context text, so delegating
-    # counting to an LLM sub-agent always returns wrong results.
     try:
         text = _fetch_raw(url)
     except Exception as e:
         return f"Fetch failed: {e}"
 
     lines = text.splitlines()
-    matching = [(i + 1, line) for i, line in enumerate(lines) if substring in line]
+    matching = [i + 1 for i, line in enumerate(lines) if substring in line]
     if not matching:
         return f'No lines contain "{substring}".'
-    first_lineno = matching[0][0]
     return (
         f'"{substring}" appears in {len(matching)} distinct lines. '
-        f"First occurrence: line {first_lineno}."
+        f"First occurrence: line {matching[0]}."
     )
 
 # ──────────────────────────────────────────────
@@ -108,25 +125,24 @@ _checkpointer_standard = InMemorySaver()
 _checkpointer_deep = InMemorySaver()
 
 
-_tools = [fetch_text_from_url, count_lines_containing]
-
-
 def build_standard_agent():
-    """Plain ReAct agent: LLM + your tools only."""
+    """Plain ReAct agent with custom counting tool."""
     return create_agent(
         model=create_llm(temperature=0.5, max_tokens=4096),
-        tools=_tools,
-        system_prompt=SYSTEM_PROMPT,
+        tools=[fetch_text_from_url, count_lines_containing],
+        system_prompt=SYSTEM_PROMPT_STANDARD,
         checkpointer=_checkpointer_standard,
     )
 
 
 def build_deep_agent():
-    """Deep agent: same interface, plus built-in planning, sub-agents, and file-system tools."""
+    """Deep agent that uses its built-in write_file + grep for line counting."""
     return create_deep_agent(
         model=create_llm(temperature=0.5, max_tokens=4096),
-        tools=_tools,
-        system_prompt=SYSTEM_PROMPT,
+        # Only fetch_text_from_url is needed — write_file and grep come from
+        # FilesystemMiddleware which create_deep_agent includes automatically.
+        tools=[fetch_text_from_url],
+        system_prompt=SYSTEM_PROMPT_DEEP,
         checkpointer=_checkpointer_deep,
     )
 
@@ -198,11 +214,13 @@ def main():
     # ── Part A: side-by-side comparison ──────────────────
     print(f"\n{'='*60}")
     print("PART A — Side-by-side comparison")
-    print("Same question, same model, same tools. Only the agent differs.")
+    print("Same question, same model. Counting strategy differs by agent.")
+    print("  create_agent:      custom count_lines_containing tool")
+    print("  create_deep_agent: built-in write_file → grep")
     print("="*60)
 
-    # invoke_and_print(standard_agent, "create_agent      (standard)", RESEARCH_QUESTION, standard_config)
-    invoke_and_print(deep_agent,     "create_deep_agent (deep)    ", RESEARCH_QUESTION, deep_config)
+    invoke_and_print(standard_agent, "create_agent (standard)", RESEARCH_QUESTION, standard_config)
+    invoke_and_print(deep_agent,     "create_deep_agent (deep)", RESEARCH_QUESTION, deep_config)
 
     # ── Part B: multi-turn memory (deep agent only) ──────
     print(f"\n{'='*60}")
