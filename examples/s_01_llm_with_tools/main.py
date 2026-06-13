@@ -20,7 +20,7 @@ from langgraph.graph import StateGraph, START, END
 
 from common.env import get_env  # noqa: F401  — ensures .env is loaded
 from common.llm import create_llm
-from common.tracing import create_langfuse_handler, build_langfuse_config
+from common.tracing import create_langfuse_handler, build_langfuse_config, get_langfuse_host
 
 # ──────────────────────────────────────────────
 # 1. Define tools
@@ -157,7 +157,7 @@ def main():
         for msg in result["messages"]:
             msg.pretty_print()
 
-    print("\nTraces uploaded to Langfuse: http://localhost:3000")
+    print(f"\nTraces uploaded to Langfuse: {get_langfuse_host()}")
 
 
 if __name__ == "__main__":

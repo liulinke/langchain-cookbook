@@ -30,7 +30,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from common.env import get_env  # noqa: F401  — ensures .env is loaded
 from common.llm import create_llm
-from common.tracing import create_langfuse_handler, build_langfuse_config
+from common.tracing import create_langfuse_handler, build_langfuse_config, get_langfuse_host
 
 # ──────────────────────────────────────────────
 # 1. System prompt
@@ -176,7 +176,7 @@ def main():
     invoke_and_print(deep_agent, "Turn 2 follow-up (no re-fetch)", FOLLOWUP_QUESTION, deep_config)
 
     print(f"\n{'='*60}")
-    print("Traces uploaded to Langfuse: http://localhost:3000")
+    print(f"Traces uploaded to Langfuse: {get_langfuse_host()}")
 
 
 if __name__ == "__main__":

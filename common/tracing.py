@@ -10,6 +10,12 @@ from langfuse.langchain import CallbackHandler
 
 # Ensure .env is loaded before Langfuse reads its env vars
 import common.env  # noqa: F401
+from common.env import get_env
+
+
+def get_langfuse_host() -> str:
+    """Return the Langfuse server URL from LANGFUSE_HOST env var."""
+    return get_env("LANGFUSE_HOST", "http://localhost:3000")
 
 
 def create_langfuse_handler() -> CallbackHandler:
