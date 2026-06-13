@@ -59,7 +59,10 @@ def fetch_text_from_url(url: str) -> str:
             raw = resp.read()
     except urllib.error.URLError as e:
         return f"Fetch failed: {e}"
-    return raw.decode("utf-8", errors="replace")
+    text = raw.decode("utf-8", errors="replace")
+    # Truncate to avoid hitting the model's context length limit;
+    # 50 000 chars covers the bulk of most novels while staying well within token budgets.
+    return text[:50_000]
 
 # ──────────────────────────────────────────────
 # 3. Build agents
