@@ -21,7 +21,7 @@ Run:
 from dataclasses import dataclass
 
 from langchain.agents import create_agent
-from langchain.tools import tool
+from langchain.tools import tool, ToolRuntime
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.utils.uuid import uuid7
 from langgraph.checkpoint.memory import InMemorySaver
@@ -32,7 +32,22 @@ from common.llm import create_llm
 from common.tracing import create_langfuse_handler, build_langfuse_config, get_langfuse_host
 
 # ──────────────────────────────────────────────
-# 1. Shared tool — a mock book database
+# 1. Context schema — defined first so the tool can reference it
+# ──────────────────────────────────────────────
+
+@dataclass
+class ReaderContext:
+    """Per-run user data injected into the agent at invocation time.
+
+    The key idea: context reaches the tool via ToolRuntime, NOT via the LLM.
+    The LLM never sees reader_name or preferred_style as message text —
+    they flow through the harness directly into the tool function.
+    """
+    reader_name: str
+    preferred_style: str  # e.g. "academic", "casual", "bullet points"
+
+# ──────────────────────────────────────────────
+# 2. Shared tool — a mock book database
 # ──────────────────────────────────────────────
 
 # In a real app this would call an API or database; here we return static data
@@ -75,20 +90,43 @@ _BOOK_DB = {
 
 
 @tool
-def lookup_book(title: str) -> str:
-    """Look up facts about a book by title. Returns author, year, genre, themes, and plot summary."""
+def lookup_book(title: str, runtime: ToolRuntime[ReaderContext]) -> str:
+    """Look up facts about a book by title. Returns content formatted for the current reader."""
+    # runtime.context is the ReaderContext passed via context= in agent.invoke().
+    # The LLM never sees these values as message text — they arrive here directly
+    # through the harness, bypassing the conversation entirely.
+    reader = runtime.context
+    if reader is not None:
+        print(f"  [tool received context] reader={reader.reader_name!r}, style={reader.preferred_style!r}")
+
     key = title.lower().strip()
     book = _BOOK_DB.get(key)
     if not book:
         available = ", ".join(f'"{t.title()}"' for t in _BOOK_DB)
         return f'Book not found. Available titles: {available}'
-    return (
-        f"Title: {title.title()}\n"
-        f"Author: {book['author']} ({book['year']})\n"
-        f"Genre: {book['genre']}\n"
-        f"Themes: {', '.join(book['themes'])}\n"
-        f"Plot: {book['plot']}"
-    )
+
+    # Format the output differently based on the reader's preferred style so
+    # the LLM receives pre-shaped content and produces visibly different responses.
+    if reader and reader.preferred_style == "bullet points":
+        return (
+            f"Book info for {reader.reader_name} (bullet-point style):\n"
+            f"• Title: {title.title()}\n"
+            f"• Author: {book['author']} ({book['year']})\n"
+            f"• Genre: {book['genre']}\n"
+            f"• Key themes: {', '.join(book['themes'])}\n"
+            f"• Plot: {book['plot']}"
+        )
+    else:
+        style_note = f" (style: {reader.preferred_style})" if reader else ""
+        return (
+            f"Book info for {reader.reader_name if reader else 'reader'}{style_note}:\n"
+            f"Title: {title.title()}\n"
+            f"Author: {book['author']} ({book['year']})\n"
+            f"Genre: {book['genre']}\n"
+            f"Themes: {', '.join(book['themes'])}\n"
+            f"Plot: {book['plot']}"
+        )
+
 
 # ──────────────────────────────────────────────
 # 2. Structured output schema (Demo B)
@@ -103,15 +141,6 @@ class BookReport(BaseModel):
     recommended_for: str = Field(description="Who would enjoy this book most")
     rating: float = Field(description="Rating from 1.0 to 5.0", ge=1.0, le=5.0)
 
-# ──────────────────────────────────────────────
-# 3. Context schema (Demo C)
-# ──────────────────────────────────────────────
-
-@dataclass
-class ReaderContext:
-    """Per-run user data injected into the agent at invocation time."""
-    reader_name: str
-    preferred_style: str  # e.g. "academic", "casual", "bullet points"
 
 # ──────────────────────────────────────────────
 # 4. Helpers
@@ -128,16 +157,17 @@ def new_config(langfuse_handler, trace_name: str) -> dict:
     cfg["configurable"] = {"thread_id": str(uuid7())}
     return cfg
 
+
 # ──────────────────────────────────────────────
 # 5. Demo A — Streaming
 # ──────────────────────────────────────────────
 
 def demo_streaming(langfuse_handler):
     """Stream the agent's tool calls and replies as they arrive."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("DEMO A — Streaming")
     print("Watch tool calls and responses arrive in real time.")
-    print("="*60)
+    print("=" * 60)
 
     agent = create_agent(
         model=create_llm(),
@@ -154,9 +184,9 @@ def demo_streaming(langfuse_handler):
     # stream_mode="values" yields the full state after every node execution,
     # so we can inspect the latest message at each step.
     for chunk in agent.stream(
-        {"messages": [{"role": "user", "content": question}]},
-        config=config,
-        stream_mode="values",
+            {"messages": [{"role": "user", "content": question}]},
+            config=config,
+            stream_mode="values",
     ):
         latest = chunk["messages"][-1]
         if isinstance(latest, HumanMessage):
@@ -167,16 +197,17 @@ def demo_streaming(langfuse_handler):
         elif isinstance(latest, AIMessage) and latest.content:
             print(f"  [reply] {latest.content}")
 
+
 # ──────────────────────────────────────────────
 # 6. Demo B — Structured output
 # ──────────────────────────────────────────────
 
 def demo_structured_output(langfuse_handler):
     """Agent returns a validated Pydantic BookReport instead of free text."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("DEMO B — Structured Output (response_format=BookReport)")
     print("The agent returns a validated Pydantic object, not free text.")
-    print("="*60)
+    print("=" * 60)
 
     # response_format instructs the agent to populate a Pydantic model.
     # The result is available under result["structured_response"].
@@ -208,17 +239,18 @@ def demo_structured_output(langfuse_handler):
     print(f"  Recommended for : {report.recommended_for}")
     print(f"  Rating          : {report.rating} / 5.0")
 
+
 # ──────────────────────────────────────────────
 # 7. Demo C — Context schema
 # ──────────────────────────────────────────────
 
 def demo_context(langfuse_handler):
     """Pass per-run user data to the agent without embedding it in the prompt."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("DEMO C — Context Schema (context_schema=ReaderContext)")
     print("Per-run user data (name, style preference) is injected at invocation")
     print("time without hardcoding it into the system prompt.")
-    print("="*60)
+    print("=" * 60)
 
     # context_schema declares the shape of per-run data.
     # The actual data is passed via context= in agent.invoke().
@@ -228,8 +260,8 @@ def demo_context(langfuse_handler):
         tools=[lookup_book],
         system_prompt=(
             "You are a personal book assistant. "
-            "The reader's name and preferred summary style are provided in the context. "
-            "Address them by name and match their preferred style."
+            "Use lookup_book to fetch the book info, then summarize it for the reader "
+            "following the format and style already indicated in the tool's output."
         ),
         context_schema=ReaderContext,
         checkpointer=InMemorySaver(),
@@ -237,7 +269,7 @@ def demo_context(langfuse_handler):
 
     readers = [
         ReaderContext(reader_name="Alice", preferred_style="bullet points"),
-        ReaderContext(reader_name="Bob",   preferred_style="casual and conversational"),
+        ReaderContext(reader_name="Bob", preferred_style="casual and conversational"),
     ]
 
     for reader in readers:
@@ -251,15 +283,16 @@ def demo_context(langfuse_handler):
         answer = result["messages"][-1].content
         print(f"  Response:\n{answer}\n")
 
+
 # ──────────────────────────────────────────────
 # 8. Entry point
 # ──────────────────────────────────────────────
 
 def main():
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("Example 03: Agent Harness Patterns")
     print("Agent = Model + Harness")
-    print("="*60)
+    print("=" * 60)
 
     langfuse_handler = create_langfuse_handler()
 
@@ -267,7 +300,7 @@ def main():
     demo_structured_output(langfuse_handler)
     demo_context(langfuse_handler)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Traces uploaded to Langfuse: {get_langfuse_host()}")
 
 
