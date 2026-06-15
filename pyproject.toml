@@ -12,4 +12,6 @@ dependencies = [
     "python-dotenv>=1.0",
     "tavily-python>=0.3",
     "deepagents>=0.6.10",
+    "jupyterlab>=4.0",
+    "ipykernel>=6.0",
 ]

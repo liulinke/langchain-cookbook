@@ -1,42 +1,35 @@
 """
 LangChain / LangGraph Cookbook
 ===============================
-Each example is independently runnable and shares utilities from common/.
-
-Available examples:
-  s_01_llm_with_tools  —— ReAct Agent with tool calling (add / multiply / divide)
-      uv run python -m examples.s_01_llm_with_tools
-
-Adding a new example:
-  1. Create a directory under examples/, e.g. examples/s_02_rag/
-  2. Add __init__.py, __main__.py, and main.py
-  3. Register it in the EXAMPLES list below
+Each example lives in examples/<name>/ as a Jupyter notebook.
+Open with: uv run jupyter lab
 """
 
 EXAMPLES = [
     {
         "name": "s_01_llm_with_tools",
         "desc": "ReAct Agent with tool calling (add / multiply / divide)",
-        "cmd": "uv run python -m examples.s_01_llm_with_tools",
+        "notebook": "examples/notebooks/s_01_llm_with_tools.ipynb",
     },
     {
         "name": "s_02_research_agent",
         "desc": "Research Agent — fetch and analyze documents from the web",
-        "cmd": "uv run python -m examples.s_02_research_agent",
+        "notebook": "examples/notebooks/s_02_research_agent.ipynb",
     },
     {
         "name": "s_03_agent_harness",
         "desc": "Agent Harness Patterns — streaming, structured output, context schema",
-        "cmd": "uv run python -m examples.s_03_agent_harness",
+        "notebook": "examples/notebooks/s_03_agent_harness.ipynb",
     },
 ]
 
 
 def main():
-    print("LangChain / LangGraph Cookbook\n")
+    print("LangChain / LangGraph Cookbook")
+    print("Start Jupyter Lab:  uv run jupyter lab\n")
     for ex in EXAMPLES:
         print(f"  [{ex['name']}]  {ex['desc']}")
-        print(f"    Run: {ex['cmd']}\n")
+        print(f"    Notebook: {ex['notebook']}\n")
 
 
 if __name__ == "__main__":

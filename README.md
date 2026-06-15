@@ -31,22 +31,30 @@ LANGFUSE_SECRET_KEY=your-langfuse-secret-key
 LANGFUSE_HOST=http://localhost:3000
 ```
 
-## List All Examples
+## Try Examples in Jupyter Lab
+
+Each example is a self-contained Jupyter notebook. Start Jupyter Lab with:
 
 ```bash
-uv run python main.py
+uv run jupyter lab
 ```
+
+Then open one of the notebooks in the browser and run cells top to bottom:
+
+- `examples/notebooks/s_01_llm_with_tools.ipynb`
+- `examples/notebooks/s_02_research_agent.ipynb`
+- `examples/notebooks/s_03_agent_harness.ipynb`
 
 ## Examples
 
-- **[01 · LLM with Tools (ReAct Agent)](examples/s_01_llm_with_tools/README.md)** — Build a ReAct Agent with LangGraph that calls arithmetic tools to solve math problems step by step.
-  `uv run python -m examples.s_01_llm_with_tools`
+- **01 · LLM with Tools (ReAct Agent)** — Build a ReAct Agent with LangGraph that calls arithmetic tools to solve math problems step by step.
+  `examples/notebooks/s_01_llm_with_tools.ipynb`
 
-- **[02 · Research Agent](examples/s_02_research_agent/README.md)** — A document research agent using `create_deep_agent` (from the `deepagents` package) that fetches a full novel and answers questions across two conversation turns, demonstrating persistent multi-turn memory via `thread_id`.
-  `uv run python -m examples.s_02_research_agent`
+- **02 · Research Agent** — A document research agent using `create_deep_agent` (from `deepagents`) that fetches a full novel and answers questions across two conversation turns, demonstrating persistent multi-turn memory via `thread_id`.
+  `examples/notebooks/s_02_research_agent.ipynb`
 
-- **[03 · Agent Harness Patterns](examples/s_03_agent_harness/README.md)** — Demonstrates the `Agent = Model + Harness` concept with three harness features: streaming tool calls in real time, structured Pydantic output via `response_format`, and per-run user data via `context_schema`.
-  `uv run python -m examples.s_03_agent_harness`
+- **03 · Agent Harness Patterns** — Demonstrates the `Agent = Model + Harness` concept with three harness features: streaming tool calls in real time, structured Pydantic output via `response_format`, and per-run user data via `context_schema`.
+  `examples/notebooks/s_03_agent_harness.ipynb`
 
 ---
 
@@ -59,18 +67,16 @@ langchain-cookbook/
 │   ├── llm.py          # LLM factory (default: gpt-4o-mini)
 │   └── tracing.py      # Langfuse tracing integration
 ├── examples/
-│   └── s_01_llm_with_tools/
-│       ├── README.md       # Explanation of the example
-│       ├── __main__.py     # Package entry point (python -m ...)
-│       └── main.py         # Example logic
+│   └── notebooks/
+│       ├── s_01_llm_with_tools.ipynb
+│       ├── s_02_research_agent.ipynb
+│       └── s_03_agent_harness.ipynb
 ├── main.py             # Lists all available examples
 └── .env.example        # Template for environment variables
 ```
 
 ## Adding a New Example
 
-1. Create a directory under `examples/`, e.g. `examples/s_02_rag/`
-2. Add `__init__.py`, `__main__.py`, and `main.py`; import shared utilities from `common/`
-3. Add a `README.md` in the new directory explaining the example
-4. Register the example in the root `main.py` `EXAMPLES` list
-5. Run: `uv run python -m examples.s_02_rag`
+1. Create a directory under `examples/`, e.g. `examples/s_04_rag/`
+2. Add `notebook.ipynb` and optionally `main.py`; import shared utilities from `common/`
+3. Register the example in the root `main.py` `EXAMPLES` list
