@@ -14,4 +14,6 @@ dependencies = [
     "deepagents>=0.6.10",
     "jupyterlab>=4.0",
     "ipykernel>=6.0",
+    "langchain-text-splitters>=0.3",
+    "beautifulsoup4>=4.12",
 ]

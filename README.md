@@ -44,6 +44,7 @@ Then open one of the notebooks in the browser and run cells top to bottom:
 - `examples/notebooks/s_01_llm_with_tools.ipynb`
 - `examples/notebooks/s_02_research_agent.ipynb`
 - `examples/notebooks/s_03_agent_harness.ipynb`
+- `examples/notebooks/s_04_rag.ipynb`
 
 ## Examples
 
@@ -56,6 +57,9 @@ Then open one of the notebooks in the browser and run cells top to bottom:
 - **03 · Agent Harness Patterns** — Demonstrates the `Agent = Model + Harness` concept with three harness features: streaming tool calls in real time, structured Pydantic output via `response_format`, and per-run user data via `context_schema`.
   `examples/notebooks/s_03_agent_harness.ipynb`
 
+- **04 · Retrieval-Augmented Generation (RAG)** — Full RAG pipeline: load a local HTML document → split into chunks → embed with OpenAI → index in a vector store. Then two retrieval patterns: a RAG Agent (LLM decides when to retrieve) and a RAG Chain (always retrieves first). Includes source-document auditing and prompt-injection defense.
+  `examples/notebooks/s_04_rag.ipynb`
+
 ---
 
 ## Project Structure
@@ -67,10 +71,13 @@ langchain-cookbook/
 │   ├── llm.py          # LLM factory (default: gpt-4o-mini)
 │   └── tracing.py      # Langfuse tracing integration
 ├── examples/
+│   ├── data/
+│   │   └── lilian_weng_agent_post.html   # pre-downloaded source doc for s_04
 │   └── notebooks/
 │       ├── s_01_llm_with_tools.ipynb
 │       ├── s_02_research_agent.ipynb
-│       └── s_03_agent_harness.ipynb
+│       ├── s_03_agent_harness.ipynb
+│       └── s_04_rag.ipynb
 ├── main.py             # Lists all available examples
 └── .env.example        # Template for environment variables
 ```

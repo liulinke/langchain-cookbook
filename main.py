@@ -21,6 +21,11 @@ EXAMPLES = [
         "desc": "Agent Harness Patterns — streaming, structured output, context schema",
         "notebook": "examples/notebooks/s_03_agent_harness.ipynb",
     },
+    {
+        "name": "s_04_rag",
+        "desc": "Retrieval-Augmented Generation — index, retrieve, generate (agent + chain)",
+        "notebook": "examples/notebooks/s_04_rag.ipynb",
+    },
 ]
 
 
