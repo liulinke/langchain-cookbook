@@ -16,4 +16,5 @@ dependencies = [
     "ipykernel>=6.0",
     "langchain-text-splitters>=0.3",
     "beautifulsoup4>=4.12",
+    "numpy>=2.4.6",
 ]
