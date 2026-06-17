@@ -53,6 +53,7 @@ Then open one of the notebooks in the browser and run cells top to bottom:
 - `examples/notebooks/s_03_agent_harness.ipynb`
 - `examples/notebooks/s_04_rag.ipynb`
 - `examples/notebooks/s_05_human_in_the_loop.ipynb`
+- `examples/notebooks/s_06_multi_agent_subagents.ipynb`
 
 ## Examples
 
@@ -70,6 +71,9 @@ Then open one of the notebooks in the browser and run cells top to bottom:
 
 - **05 · Human-in-the-Loop (HITL)** — Two patterns for human oversight of agent actions: LangGraph's native `interrupt()` for pausing and resuming graph execution, and `HumanInTheLoopMiddleware` for policy-based tool-call approvals. Covers all four decision types (approve / edit / reject / respond) and conditional interrupts that only fire for risky operations.
   `examples/notebooks/s_05_human_in_the_loop.ipynb`
+
+- **06 · Multi-Agent: Subagents** — Supervisor architecture where a main agent coordinates specialized subagents as tools. Demonstrates four patterns: Tool-Per-Agent (one wrapper per subagent), Single Dispatch Tool (one `task()` routes to any agent), Enum-constrained type-safe discovery, and Command-based structured output that writes subagent results directly into supervisor state.
+  `examples/notebooks/s_06_multi_agent_subagents.ipynb`
 
 ---
 
@@ -89,7 +93,8 @@ langchain-cookbook/
 │       ├── s_02_research_agent.ipynb
 │       ├── s_03_agent_harness.ipynb
 │       ├── s_04_rag.ipynb
-│       └── s_05_human_in_the_loop.ipynb
+│       ├── s_05_human_in_the_loop.ipynb
+│       └── s_06_multi_agent_subagents.ipynb
 ├── main.py             # Lists all available examples
 └── .env.example        # Template for environment variables
 ```

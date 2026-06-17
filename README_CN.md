@@ -79,6 +79,14 @@ uv run python main.py
 
 ---
 
+### 06 · 多 Agent：子 Agent（Subagents）
+
+监督者架构：主 Agent 以工具的形式协调各专业子 Agent。演示四种模式：每个 Agent 一个工具（Tool-Per-Agent）、单一调度工具（一个 `task()` 路由到任意 Agent）、Enum 约束的类型安全 Agent 发现、以及基于 `Command` 的结构化输出（将子 Agent 的结果直接写入监督者状态）。
+
+`examples/notebooks_cn/s_06_multi_agent_subagents.ipynb`
+
+---
+
 ## 项目结构
 
 ```
@@ -93,13 +101,15 @@ langchain-cookbook/
 │   │   ├── s_02_research_agent.ipynb
 │   │   ├── s_03_agent_harness.ipynb
 │   │   ├── s_04_rag.ipynb
-│   │   └── s_05_human_in_the_loop.ipynb
+│   │   ├── s_05_human_in_the_loop.ipynb
+│   │   └── s_06_multi_agent_subagents.ipynb
 │   └── notebooks_cn/
 │       ├── s_01_llm_with_tools.ipynb
 │       ├── s_02_research_agent.ipynb
 │       ├── s_03_agent_harness.ipynb
 │       ├── s_04_rag.ipynb
-│       └── s_05_human_in_the_loop.ipynb
+│       ├── s_05_human_in_the_loop.ipynb
+│       └── s_06_multi_agent_subagents.ipynb
 ├── main.py             # 示例列表
 └── .env.example        # 环境变量模板
 ```
