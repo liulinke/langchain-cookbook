@@ -726,6 +726,15 @@ wheels = [
 ]
 
 [[package]]
+name = "json-repair"
+version = "0.53.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b6/4e/f92634077c08208df2f7d5999af3288f29bd4348849ba99fdd34f59689f4/json_repair-0.53.1.tar.gz", hash = "sha256:9eacf70954399c49f29c4723e3b899088dab096795b70c061d0421af720b35fa", size = 35947, upload-time = "2025-11-18T11:23:14.437Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1b/52/afc5ba813be79f3d34c4cb88dea63a91c2e403a899168455d2c6e56cadfb/json_repair-0.53.1-py3-none-any.whl", hash = "sha256:6d80d725f747e55373d098f883bd8c48c55c24f80b034458f5cf7e82834c803f", size = 27601, upload-time = "2025-11-18T11:23:13.012Z" },
+]
+
+[[package]]
 name = "json5"
 version = "0.14.0"
 source = { registry = "https://pypi.org/simple" }
@@ -988,6 +997,7 @@ dependencies = [
     { name = "jupyterlab" },
     { name = "langchain" },
     { name = "langchain-openai" },
+    { name = "langchain-qwq" },
     { name = "langchain-text-splitters" },
     { name = "langfuse" },
     { name = "langgraph" },
@@ -1004,6 +1014,7 @@ requires-dist = [
     { name = "jupyterlab", specifier = ">=4.0" },
     { name = "langchain", specifier = ">=0.3" },
     { name = "langchain-openai", specifier = ">=0.2" },
+    { name = "langchain-qwq", specifier = ">=0.3.5" },
     { name = "langchain-text-splitters", specifier = ">=0.3" },
     { name = "langfuse", specifier = ">=2.0" },
     { name = "langgraph", specifier = ">=0.2" },
@@ -1071,6 +1082,28 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/44/b3/4e2429876c7a35585618caa2b9f9089f7162a6b50562b614ad82ac11c17e/langchain_protocol-0.0.17.tar.gz", hash = "sha256:e7cbe58c205df4b4fd87dc6d5bb23f10e13b236d0e2e1b0b9d05bc2b648f3eea", size = 6026, upload-time = "2026-06-12T18:39:51.923Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/13/0a/a1bfe72c6ec856e99773bbd96c8086421e554b3693d0142b9ea009c6ac92/langchain_protocol-0.0.17-py3-none-any.whl", hash = "sha256:982a08fe152586ed10d4ff3d538c2e0b5766e5f307cdea325e10be3f2c17cae6", size = 7096, upload-time = "2026-06-12T18:39:50.973Z" },
+]
+
+[[package]]
+name = "langchain-qwq"
+version = "0.3.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "json-repair" },
+    { name = "langchain" },
+    { name = "langchain-core" },
+    { name = "langchain-openai" },
+    { name = "langgraph" },
+    { name = "langgraph-checkpoint" },
+    { name = "langsmith" },
+    { name = "orjson" },
+    { name = "pygments" },
+    { name = "requests" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/27/32/3bf30889a591e30832f4efd6c2137a0fb8aef61964be872f807be8bf04db/langchain_qwq-0.3.5.tar.gz", hash = "sha256:f11dc2965ed848ae2b7be77fd689243cba13400fcd86b5da0d512ed3cd74d0e7", size = 17984, upload-time = "2026-05-20T14:36:43.995Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e6/3b/9b2611dff69d5b1068767a249fc433bded3dd5ab8665b3e4cc7e06f3622c/langchain_qwq-0.3.5-py3-none-any.whl", hash = "sha256:3681e7a9c2b93ade2dfc5fcf0e5dbbc342a133f71b4217eb52354b31e4d4cada", size = 17882, upload-time = "2026-05-20T14:36:42.457Z" },
 ]
 
 [[package]]
