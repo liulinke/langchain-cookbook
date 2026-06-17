@@ -52,6 +52,7 @@ Then open one of the notebooks in the browser and run cells top to bottom:
 - `examples/notebooks/s_02_research_agent.ipynb`
 - `examples/notebooks/s_03_agent_harness.ipynb`
 - `examples/notebooks/s_04_rag.ipynb`
+- `examples/notebooks/s_05_human_in_the_loop.ipynb`
 
 ## Examples
 
@@ -66,6 +67,9 @@ Then open one of the notebooks in the browser and run cells top to bottom:
 
 - **04 · Retrieval-Augmented Generation (RAG)** — Full RAG pipeline: load a local HTML document → split into chunks → embed with OpenAI → index in a vector store. Then two retrieval patterns: a RAG Agent (LLM decides when to retrieve) and a RAG Chain (always retrieves first). Includes source-document auditing and prompt-injection defense.
   `examples/notebooks/s_04_rag.ipynb`
+
+- **05 · Human-in-the-Loop (HITL)** — Two patterns for human oversight of agent actions: LangGraph's native `interrupt()` for pausing and resuming graph execution, and `HumanInTheLoopMiddleware` for policy-based tool-call approvals. Covers all four decision types (approve / edit / reject / respond) and conditional interrupts that only fire for risky operations.
+  `examples/notebooks/s_05_human_in_the_loop.ipynb`
 
 ---
 
@@ -84,7 +88,8 @@ langchain-cookbook/
 │       ├── s_01_llm_with_tools.ipynb
 │       ├── s_02_research_agent.ipynb
 │       ├── s_03_agent_harness.ipynb
-│       └── s_04_rag.ipynb
+│       ├── s_04_rag.ipynb
+│       └── s_05_human_in_the_loop.ipynb
 ├── main.py             # Lists all available examples
 └── .env.example        # Template for environment variables
 ```

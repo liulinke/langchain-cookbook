@@ -45,11 +45,37 @@ uv run python main.py
 
 > 来源：[LangGraph 教程 — 构建 ReAct Agent](https://langchain-ai.github.io/langgraph/tutorials/introduction/)
 
-```bash
-uv run python -m examples.s_01_llm_with_tools
-```
+---
 
-详细说明见 [examples/s_01_llm_with_tools/README.md](examples/s_01_llm_with_tools/README.md)。
+### 02 · Research Agent（调研 Agent）
+
+使用 `create_deep_agent`（来自 `deepagents`）构建的文档调研 Agent，能读取完整小说并跨两轮对话回答问题，通过 `thread_id` 实现持久化多轮记忆。
+
+`examples/notebooks_cn/s_02_research_agent.ipynb`
+
+---
+
+### 03 · Agent Harness 模式
+
+演示 `Agent = 模型 + Harness` 的核心概念，涵盖三种 Harness 特性：实时流式输出工具调用、通过 `response_format` 生成结构化 Pydantic 输出、以及通过 `context_schema` 注入每次运行的用户数据。
+
+`examples/notebooks_cn/s_03_agent_harness.ipynb`
+
+---
+
+### 04 · RAG（检索增强生成）
+
+完整 RAG 流水线：加载本地 HTML 文档 → 分块 → 用 OpenAI 嵌入 → 存入向量数据库。然后演示两种检索模式：RAG Agent（LLM 自决何时检索）和 RAG Chain（始终先检索）。包含来源文档审计和提示注入防御。
+
+`examples/notebooks_cn/s_04_rag.ipynb`
+
+---
+
+### 05 · Human-in-the-Loop（人工介入）
+
+两种人工监督 Agent 操作的模式：LangGraph 原生 `interrupt()` 用于暂停和恢复图执行；`HumanInTheLoopMiddleware` 用于基于策略的工具调用审批。涵盖四种决策类型（批准 / 编辑 / 拒绝 / 直接回复）以及只在高风险操作时触发的条件中断。
+
+`examples/notebooks_cn/s_05_human_in_the_loop.ipynb`
 
 ---
 
@@ -62,10 +88,18 @@ langchain-cookbook/
 │   ├── llm.py          # 创建 LLM 实例（默认 gpt-4o-mini）
 │   └── tracing.py      # Langfuse 追踪集成
 ├── examples/
-│   └── s_01_llm_with_tools/
-│       ├── README.md       # 示例说明
-│       ├── __main__.py     # 包入口（python -m ...）
-│       └── main.py         # 示例逻辑
+│   ├── notebooks/
+│   │   ├── s_01_llm_with_tools.ipynb
+│   │   ├── s_02_research_agent.ipynb
+│   │   ├── s_03_agent_harness.ipynb
+│   │   ├── s_04_rag.ipynb
+│   │   └── s_05_human_in_the_loop.ipynb
+│   └── notebooks_cn/
+│       ├── s_01_llm_with_tools.ipynb
+│       ├── s_02_research_agent.ipynb
+│       ├── s_03_agent_harness.ipynb
+│       ├── s_04_rag.ipynb
+│       └── s_05_human_in_the_loop.ipynb
 ├── main.py             # 示例列表
 └── .env.example        # 环境变量模板
 ```
