@@ -23,7 +23,14 @@ cp .env.example .env
 ```
 
 ```env
+# Model (default: gpt-4o-mini via OpenAI)
+LLM_MODEL=gpt-4o-mini
 OPENAI_API_KEY=your-openai-key
+
+# To use Qwen via DashScope instead, comment out the above and uncomment:
+# LLM_MODEL=qwen-plus
+# LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+# DASHSCOPE_API_KEY=your-dashscope-key
 
 # Langfuse tracing (optional, local service)
 LANGFUSE_PUBLIC_KEY=your-langfuse-public-key
