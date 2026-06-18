@@ -87,6 +87,14 @@ uv run python main.py
 
 ---
 
+### 07 · 多 Agent：路由器（Router）
+
+路由器架构：对传入查询分类后导向专业智能体。涵盖两种模式：使用 `Command(goto=...)` 的单路由（一次 LLM 分类后路由到匹配专家），以及使用 `Send` 的并行扇出（多个智能体同时作答，结果通过 `operator.add` 归约器合并）。附路由器 vs. 监督者决策指南。
+
+`examples/notebooks_cn/s_07_multi_agent_router.ipynb`
+
+---
+
 ## 项目结构
 
 ```
@@ -102,14 +110,16 @@ langchain-cookbook/
 │   │   ├── s_03_agent_harness.ipynb
 │   │   ├── s_04_rag.ipynb
 │   │   ├── s_05_human_in_the_loop.ipynb
-│   │   └── s_06_multi_agent_subagents.ipynb
+│   │   ├── s_06_multi_agent_subagents.ipynb
+│   │   └── s_07_multi_agent_router.ipynb
 │   └── notebooks_cn/
 │       ├── s_01_llm_with_tools.ipynb
 │       ├── s_02_research_agent.ipynb
 │       ├── s_03_agent_harness.ipynb
 │       ├── s_04_rag.ipynb
 │       ├── s_05_human_in_the_loop.ipynb
-│       └── s_06_multi_agent_subagents.ipynb
+│       ├── s_06_multi_agent_subagents.ipynb
+│       └── s_07_multi_agent_router.ipynb
 ├── main.py             # 示例列表
 └── .env.example        # 环境变量模板
 ```
