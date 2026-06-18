@@ -29,7 +29,9 @@ Based on the learning webpage content provided by the user:
     
 ## Notebook 规范
 每次生成或修改 .ipynb 后，必须运行：
-jupyter nbconvert --to notebook --execute --inplace your_notebook.ipynb
+
+uv run jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.kernel_name=langchain-cookbook examples/notebooks_cn/your_notebook.ipynb
+
 命令成功（exit code 0）才算完成，否则继续修复。
 
 ## Others
