@@ -55,6 +55,7 @@ Then open one of the notebooks in the browser and run cells top to bottom:
 - `examples/notebooks/s_05_human_in_the_loop.ipynb`
 - `examples/notebooks/s_06_multi_agent_subagents.ipynb`
 - `examples/notebooks/s_07_multi_agent_router.ipynb`
+- `examples/notebooks/s_08_thinking_in_langgraph.ipynb`
 
 ## Examples
 
@@ -79,6 +80,9 @@ Then open one of the notebooks in the browser and run cells top to bottom:
 - **07 · Multi-Agent: Router** — Router architecture that classifies queries and directs them to specialist agents. Covers two patterns: single-agent routing with `Command(goto=...)` (one LLM classify call routes to the matching expert) and parallel fan-out with `Send` (multiple agents answer simultaneously, results merged via `operator.add` reducer). Includes a Router vs. Supervisor decision guide.
   `examples/notebooks/s_07_multi_agent_router.ipynb`
 
+- **08 · Thinking in LangGraph** — End-to-end customer support email agent as a case study for LangGraph design thinking. Covers: mapping a real workflow to a StateGraph, designing a shared `TypedDict` state, implementing all four node types (LLM, Data, Action, User-Input), applying `RetryPolicy` / Command-loop / `error_handler` error strategies, and wiring `interrupt()` for human review with resume.
+  `examples/notebooks/s_08_thinking_in_langgraph.ipynb`
+
 ---
 
 ## Project Structure
@@ -99,7 +103,8 @@ langchain-cookbook/
 │       ├── s_04_rag.ipynb
 │       ├── s_05_human_in_the_loop.ipynb
 │       ├── s_06_multi_agent_subagents.ipynb
-│       └── s_07_multi_agent_router.ipynb
+│       ├── s_07_multi_agent_router.ipynb
+│       └── s_08_thinking_in_langgraph.ipynb
 ├── main.py             # Lists all available examples
 └── .env.example        # Template for environment variables
 ```

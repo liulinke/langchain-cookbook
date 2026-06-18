@@ -95,6 +95,14 @@ uv run python main.py
 
 ---
 
+### 08 · LangGraph 的思维方式
+
+以客服邮件系统为案例，完整演示 LangGraph 设计思维：将真实业务流程映射为 StateGraph、设计共享 `TypedDict` 状态、实现四种节点类型（LLM / 数据 / 行动 / 用户输入）、应用 `RetryPolicy` / Command 循环 / `error_handler` 三种错误处理策略，以及使用 `interrupt()` 实现人工审核与恢复。
+
+`examples/notebooks_cn/s_08_thinking_in_langgraph.ipynb`
+
+---
+
 ## 项目结构
 
 ```
@@ -111,7 +119,8 @@ langchain-cookbook/
 │   │   ├── s_04_rag.ipynb
 │   │   ├── s_05_human_in_the_loop.ipynb
 │   │   ├── s_06_multi_agent_subagents.ipynb
-│   │   └── s_07_multi_agent_router.ipynb
+│   │   ├── s_07_multi_agent_router.ipynb
+│   │   └── s_08_thinking_in_langgraph.ipynb
 │   └── notebooks_cn/
 │       ├── s_01_llm_with_tools.ipynb
 │       ├── s_02_research_agent.ipynb
@@ -119,7 +128,8 @@ langchain-cookbook/
 │       ├── s_04_rag.ipynb
 │       ├── s_05_human_in_the_loop.ipynb
 │       ├── s_06_multi_agent_subagents.ipynb
-│       └── s_07_multi_agent_router.ipynb
+│       ├── s_07_multi_agent_router.ipynb
+│       └── s_08_thinking_in_langgraph.ipynb
 ├── main.py             # 示例列表
 └── .env.example        # 环境变量模板
 ```
